@@ -3,25 +3,27 @@ package net.isogen;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
 /**
  * Created by Ian Murphy on 8/29/2016.
  */
-public class SudokuGenerator extends Generator {
+public class SudokuGenerator {
     private final int _maxlevels = 512;
     private final int _nthreshhold = 10;
+    private final String _username;
+    private final int _level;
     private int _dim;
     private int _n;
     private long _hash;
     private int _difficulty;
     private int [][] _field;
 
-    public SudokuGenerator(String username, int level, String outputFile) {
+    public SudokuGenerator(String username, int level) {
         _username = username;
         _level = level;
-        _outputFile = outputFile;
         setGenParams();
         generate();
         scramble();
@@ -58,6 +60,8 @@ public class SudokuGenerator extends Generator {
             System.out.println("Not a valid Sudoku board");
             throw new Error();
         }
+        int rempercent = (_difficulty/2) + 10;
+        removePercentage(rempercent);
     }
 
     private void scramble(){
@@ -132,6 +136,14 @@ public class SudokuGenerator extends Generator {
         return _dim;
     }
 
+    public int getSize() {
+        return _n;
+    }
+
+    public int get_difficulty() {
+        return _difficulty;
+    }
+
     public String getField(){
         StringBuilder sb = new StringBuilder();
         for(int [] row:_field){
@@ -143,21 +155,17 @@ public class SudokuGenerator extends Generator {
         return sb.toString();
     }
 
-    @Override
-    public void writeOutput() {
-        try {
-            BufferedWriter output = new BufferedWriter(new FileWriter(_outputFile));
-            output.write(String.valueOf(_n) + "|");
-            for (int row = 0; row<_dim; row++){
-                for (int col = 0; col<_dim; col++){
-                    String value = String.valueOf(_field[row][col]);
-                    output.write(value + " ");
-                }
-                output.write("\n");
-            }
-            output.close();
-        }catch(Exception e){
-            e.printStackTrace();
+    public Boolean verify(String [] solution){
+        ArrayList<Integer> solutionStack = new ArrayList<>();
+        for (String cellVal : solution){
+            solutionStack.add(Integer.valueOf(cellVal));
         }
+        for (int row = 0; row < _dim; row++){
+            for (int col = 0; col < _dim; col++){
+                if(_field[row][col] == -1)
+                    _field[row][col] = solutionStack.remove(0);
+            }
+        }
+        return checkAll();
     }
 }
